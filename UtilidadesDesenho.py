@@ -35,17 +35,6 @@ velocidadeAngular = 0.1;
 
 cores = ([rand.random(),rand.random(),rand.random()], [rand.random(),rand.random(),rand.random()], [rand.random(),rand.random(),rand.random()], [rand.random(),rand.random(),rand.random()], [rand.random(),rand.random(),rand.random()], [rand.random(),rand.random(),rand.random()], [rand.random(),rand.random(),rand.random()])
 
-dicionarioDeCores = {
-	(rand.random(),rand.random(),rand.random()): "blue",
-	(rand.random(),rand.random(),rand.random()): "green",
-	(rand.random(),rand.random(),rand.random()): "cyan",
-	(rand.random(),rand.random(),rand.random()): "red",
-	(rand.random(),rand.random(),rand.random()): "pink",
-	(rand.random(),rand.random(),rand.random()): "yellow",
-	(rand.random(),rand.random(),rand.random()): "white",
-	(rand.random(), rand.random(), rand.random()): "gray"
-}
-
 def Initialize (Width, Height, entrada):				# We call this right after our OpenGL window is created.
 	global g_quadratic, facesDoPoliedro, objetosADesenhar, grafo
 
@@ -270,7 +259,6 @@ def translateAndRotate(ang, p, eixo, parent):
 def RetornaFaceInterceptadaPelaReta(mouseX, mouseY, poligonos):
 	global objetosADesenhar;
 
-	# passar os pontos mouseX e mouseY para a rotacao certa
 	p1 = [mouseX, mouseY, 2];
 	p2 = [mouseX, mouseY, -2];
 	p1Certo = Matrix3fMulMatrix3f(g_ThisRot, p1);
@@ -282,14 +270,6 @@ def RetornaFaceInterceptadaPelaReta(mouseX, mouseY, poligonos):
 	poligonoMaisProximo = RetornaPoligonoMaisProximoInterceptadaPelaReta(poligonos, linha);
 
 	return poligonoMaisProximo;
-
-def RetornaPoligonoInterceptadoPelaReta(linha, poligonos):
-	arrayDePoligonos = [];
-	for poligono in poligonos:
-		contains, p, t = poligono.doesLineCrossPolygon(linha);
-		if (contains):
-			arrayDePoligonos.append(poligono);
-	return arrayDePoligonos;
 
 def RetornaPoligonoMaisProximoInterceptadaPelaReta(poligonos, retaDoClique):
     poligonoMaisProximo = 0
@@ -350,13 +330,6 @@ def desenhaPoliedro(facesDoPoliedro):
 		glMultMatrixf(g_Transform);
 
 	return
-
-def ReiniciaCores(poligonos):
-	aux = 0;
-	for poligono in poligonos:
-		poligono.color = cores[aux % len(cores)];
-		aux += 1;
-	return poligonos;
 
 def Draw ():
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);				# // Clear Screen And Depth Buffer
