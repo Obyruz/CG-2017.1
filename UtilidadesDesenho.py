@@ -7,6 +7,7 @@ import copy
 import math
 import numpy
 
+import random as rand
 from Geometry import *
 from graph2 import *
 
@@ -23,30 +24,30 @@ g_isDragging = False
 g_isOpening = False
 g_isNotMoving = True
 g_quadratic = None
+g_notRotated = True
 
-facesDoSolido = [];
+facesDoPoliedro = [];
 objetosADesenhar = [];
 
 grafo = Graph();
 
 velocidadeAngular = 0.1;
 
-#          blue    green     cyan     red      pink     yellow   white
-colors = ([0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,0,1], [1,1,0], [1,1,1])
+cores = ([rand.random(),rand.random(),rand.random()], [rand.random(),rand.random(),rand.random()], [rand.random(),rand.random(),rand.random()], [rand.random(),rand.random(),rand.random()], [rand.random(),rand.random(),rand.random()], [rand.random(),rand.random(),rand.random()], [rand.random(),rand.random(),rand.random()])
 
-color_dict = {
-	(0,0,1): "blue",
-	(0,1,0): "green",
-	(0,1,1): "cyan",
-	(1,0,0): "red",
-	(1,0,1): "pink",
-	(1,1,0): "yellow",
-	(1,1,1): "white",
-	(0.502, 0.502, 0.502): "gray"
+dicionarioDeCores = {
+	(rand.random(),rand.random(),rand.random()): "blue",
+	(rand.random(),rand.random(),rand.random()): "green",
+	(rand.random(),rand.random(),rand.random()): "cyan",
+	(rand.random(),rand.random(),rand.random()): "red",
+	(rand.random(),rand.random(),rand.random()): "pink",
+	(rand.random(),rand.random(),rand.random()): "yellow",
+	(rand.random(),rand.random(),rand.random()): "white",
+	(rand.random(), rand.random(), rand.random()): "gray"
 }
 
 def Initialize (Width, Height, entrada):				# We call this right after our OpenGL window is created.
-	global g_quadratic, facesDoSolido, objetosADesenhar, grafo
+	global g_quadratic, facesDoPoliedro, objetosADesenhar, grafo
 
 	if len(entrada) < 2:
 	    print('Nenhum arquivo foi passado, por favor, entre com um arquivo.')
@@ -64,92 +65,91 @@ def Initialize (Width, Height, entrada):				# We call this right after our OpenG
 	gluQuadricDrawStyle(g_quadratic, GLU_FILL);
 	# Why? this tutorial never maps any textures?! ?
 
-	vertices, faces = GetSolidFromFile(entrada)
-	facesDoSolido = BuildSolidStructure(vertices, faces)
-	objetosADesenhar.append(facesDoSolido)
+	vertices, faces = RecebePoliedroDoArquivo(entrada)
+	facesDoPoliedro = ConstroiPoliedro(vertices, faces)
+	objetosADesenhar.append(facesDoPoliedro)
 
-	grafo = BuildGraph(facesDoSolido)
+	grafo = ConstroiGrafo(facesDoPoliedro)
 
 	#gluQuadricTexture(g_quadratic, GL_TRUE);			# // Create Texture Coords
 
 	return True
 
-def BuildGraph(polygons):
-	graph = Graph();
+def ConstroiGrafo(poligonos):
+	grafoEmConstrucao = Graph();
 
-	for polygon in polygons:
-		graph.add_vertex(polygon);
+	for poligono in poligonos:
+		grafoEmConstrucao.add_vertex(poligono);
 
-	for polygon1 in polygons:
-		for polygon2 in polygons:
-			if polygon1.points != polygon2.points and DoPolygonsHaveAnEdgeInCommon(polygon1, polygon2):
-				graph.add_edge({polygon1, polygon2});
-	return graph;
+	for primeiroPoligono in poligonos:
+		for segundoPoligono in poligonos:
+			if primeiroPoligono.points != segundoPoligono.points and VerificaSePoligonosPossuemArestasEmComum(primeiroPoligono, segundoPoligono):
+				grafoEmConstrucao.add_edge({primeiroPoligono, segundoPoligono});
+	return grafoEmConstrucao;
 
-def DoPolygonsHaveAnEdgeInCommon(poly1, poly2):
-	edges1 = GeneratePolygonEdges(poly1);
-	edges2 = GeneratePolygonEdges(poly2);
+def VerificaSePoligonosPossuemArestasEmComum(primeiroPoligono, segundoPoligono):
+	primeiraAresta = GeraArestasDoPoligono(primeiroPoligono);
+	segundaAresta = GeraArestasDoPoligono(segundoPoligono);
 
-	for line1 in edges1:
-		for line2 in edges2:
-			if (line1.p1 == line2.p1 and line1.p2 == line2.p2) or (line1.p1 == line2.p2 and line1.p2 == line2.p1):
+	for linhaPrimeiraAresta in primeiraAresta:
+		for linhaSegundaAresta in segundaAresta:
+			if (linhaPrimeiraAresta.p1 == linhaSegundaAresta.p1 and linhaPrimeiraAresta.p2 == linhaSegundaAresta.p2) or (linhaPrimeiraAresta.p1 == linhaSegundaAresta.p2 and linhaPrimeiraAresta.p2 == linhaSegundaAresta.p1):
 				return True;
 	return False;
 
-def GetEdgesInCommon(poly1, poly2):
-	edges1 = GeneratePolygonEdges(poly1);
-	edges2 = GeneratePolygonEdges(poly2);
-	edgesInCommon = [];
+def RetornaArestasEmComum(primeiroPoligono, segundoPoligono):
+	primeiraAresta = GeraArestasDoPoligono(primeiroPoligono);
+	segundaAresta = GeraArestasDoPoligono(segundoPoligono);
+	arestasEmComum = [];
 
-	for line1 in edges1:
-		for line2 in edges2:
-			if (line1.p1 == line2.p1 and line1.p2 == line2.p2) or (line1.p1 == line2.p2 and line1.p2 == line2.p1):
-				edgesInCommon.append(line1);
-	return edgesInCommon;
+	for linhaPrimeiraAresta in primeiraAresta:
+		for linhaSegundaAresta in segundaAresta:
+			if (linhaPrimeiraAresta.p1 == linhaSegundaAresta.p1 and linhaPrimeiraAresta.p2 == linhaSegundaAresta.p2) or (linhaPrimeiraAresta.p1 == linhaSegundaAresta.p2 and linhaPrimeiraAresta.p2 == linhaSegundaAresta.p1):
+				arestasEmComum.append(linhaPrimeiraAresta);
+	return arestasEmComum;
 
-def GetSolidFromFile(argv):
-	global facesDoSolido, objetosADesenhar;
+def RecebePoliedroDoArquivo(argv):
+	global facesDoPoliedro, objetosADesenhar;
 	if len(argv) < 2:
 		return None;
 
-	f = open(argv[1]);
-	lines = f.readlines();
+	arquivoEntrada = open(argv[1]);
+	linhasDoArquivo = arquivoEntrada.readlines();
 
-	line = lines[3].split(" ");
-	nVertices = int(line[2]);
+	linha = linhasDoArquivo[3].split(" ");
+	numeroVertices = int(linha[2]);
 
-	line = lines[7].split(" ");
-	nFaces = int(line[2]);
+	linha = linhasDoArquivo[7].split(" ");
+	numeroFaces = int(linha[2]);
 
-	vertexIndex = 0;
+	indiceVertice = 0;
 	vertices = [];
-	while vertexIndex < nVertices:
-		v = lines[10 + vertexIndex].split(" ");
-		vertices.append(Point(float(v[0]), float(v[1]), float(v[2])));
-		vertexIndex += 1;
+	while indiceVertice < numeroVertices:
+		vertice = linhasDoArquivo[10 + indiceVertice].split(" ");
+		vertices.append(Point(float(vertice[0]), float(vertice[1]), float(vertice[2])));
+		indiceVertice += 1;
 
-	faceIndex = 0;
+	indiceFaces = 0;
 	faces = [];
-	while faceIndex < nFaces:
-		face = lines[10 + vertexIndex + faceIndex].split(" ");
+	while indiceFaces < numeroFaces:
+		face = linhasDoArquivo[10 + indiceVertice + indiceFaces].split(" ");
 		faces.append([int(fac) for fac in face[1:] if str.isdigit(fac)]);
-		faceIndex += 1;
+		indiceFaces += 1;
 
-	f.close();
+	arquivoEntrada.close();
 	return vertices, faces;
 
-# retorna o array de poligonos que forma o cubo, com base nas variaveis globais acima: vertices e surfaces
-def BuildSolidStructure(vertices, surfaces):
-	i = 0;
-	polygons = [];
-	for listOfVertexIndexes in surfaces:
-		arrayOfPoints = [];
-		for vertexIndex in listOfVertexIndexes:
-			arrayOfPoints.append(vertices[vertexIndex]);
-		polygons.append(Polygon(arrayOfPoints, colors[i % len(colors)]));
-		i += 1;
+def ConstroiPoliedro(vertices, superficies):
+	count = 0;
+	poligonos = [];
+	for indiceDeVertices in superficies:
+		pontos = [];
+		for indiceVertice in indiceDeVertices:
+			pontos.append(vertices[indiceVertice]);
+		poligonos.append(Polygon(pontos, cores[count % len(cores)]));
+		count += 1;
 
-	return polygons;
+	return poligonos;
 
 def Upon_Drag (cursor_x, cursor_y):
 	""" Mouse cursor is moving
@@ -172,10 +172,10 @@ def Upon_Click (button, button_state, cursor_x, cursor_y):
 	    Glut calls this function when a mouse button is
 	    clicked or released.
 	"""
-	global g_isDragging, g_isOpening, g_isNotMoving, g_LastRot, g_Transform, g_ThisRot, velocidadeAngular
+	global g_isDragging, g_isOpening, g_isNotMoving, g_LastRot, g_Transform, g_ThisRot, velocidadeAngular, g_notRotated
 
 	g_isDragging = False
-	if (button == GLUT_RIGHT_BUTTON and button_state == GLUT_UP):
+	if (button == GLUT_RIGHT_BUTTON and button_state == GLUT_UP and not g_notRotated):
 	    # Right button click
 	    #g_LastRot = Matrix3fSetIdentity ();							# // Reset Rotation
 	    #g_ThisRot = Matrix3fSetIdentity ();							# // Reset Rotation
@@ -190,46 +190,23 @@ def Upon_Click (button, button_state, cursor_x, cursor_y):
                 g_isOpening = True
                 g_isNotMoving = False
                 oglx, ogly = ScreenToOGLCoords(cursor_x, cursor_y)
-                pickedFace = PickSurface(oglx, ogly, facesDoSolido)
+                faceInterceptada = RetornaFaceInterceptadaPelaReta(oglx, ogly, facesDoPoliedro)
 
-                if pickedFace != None:
-                    visited = bfs_keeping_track_of_parents(grafo, pickedFace)
+                if faceInterceptada != None:
+                    visited = bfs_keeping_track_of_parents(grafo, faceInterceptada)
 	elif (button == GLUT_LEFT_BUTTON and button_state == GLUT_UP):
 	    # Left button released
+            g_notRotated = False
 	    g_LastRot = copy.copy (g_ThisRot);							# // Set Last Static Rotation To Last Dynamic One
 	elif (button == GLUT_LEFT_BUTTON and button_state == GLUT_DOWN):
 	    # Left button clicked down
+            g_notRotated = False
 	    g_LastRot = copy.copy (g_ThisRot);							# // Set Last Static Rotation To Last Dynamic One
 	    g_isDragging = True											# // Prepare For Dragging
 	    mouse_pt = Point2fT (cursor_x, cursor_y)
 	    g_ArcBall.click (mouse_pt);								# // Update Start Vector And Prepare For Dragging
 
 	return
-
-def dfs_iterative(graph, start):
-	visited, stack = set(), [start]
-	previous = start;
-	while stack:
-		vertex = stack.pop();
-		if vertex not in visited:
-			if not DoPolygonsHaveAnEdgeInCommon(previous, vertex):
-				previous = start;
-			visited.add(vertex);
-			Visit(vertex, previous);
-			stack.extend(set(graph.vertex_neighbours(vertex)) - visited);
-			previous = vertex;
-	return visited
-
-def dfs_recursive(graph, start, parent=None, visited=None):
-	if visited is None:
-	    visited = set();
-	visited.add(start);
-	if parent == None:
-		parent = start;
-	Visit(start, parent);
-	for next in set(graph.vertex_neighbours(start)) - visited:
-	    dfs_recursive(graph, next, start, visited);
-	return visited;
 
 def bfs(graph, start):
 	visited, queue = set(), [start];
@@ -257,37 +234,40 @@ def bfs_keeping_track_of_parents(graph, start):
 			Visit(node, parent[node]);
 			queue.extend(set(graph.vertex_neighbours(node)) - visited);
 
-def Visit(thisPoly, prevPoly):
-	if thisPoly != prevPoly:
-		n1 = [thisPoly.normal[0], thisPoly.normal[1], thisPoly.normal[2]];
-		n2 = [prevPoly.normal[0], prevPoly.normal[1], prevPoly.normal[2]];
-		angle = Angle(n1, n2);
-		angle = numpy.rad2deg(angle);
-		edges1 = GeneratePolygonEdges(thisPoly);
-		edges2 = GeneratePolygonEdges(prevPoly);
-		commonEdges = GetEdgesInCommon(thisPoly, prevPoly);
-		if commonEdges == []:
+def Visit(poligonoAtual, poligonoAnterior):
+	if poligonoAtual != poligonoAnterior:
+		normalPoligonoAtual = [poligonoAtual.normal[0], poligonoAtual.normal[1], poligonoAtual.normal[2]];
+		normalPoligonoAnterior = [poligonoAnterior.normal[0], poligonoAnterior.normal[1], poligonoAnterior.normal[2]];
+		angulo = Angle(normalPoligonoAtual, normalPoligonoAnterior);
+		angulo = numpy.rad2deg(angulo);
+		primeiraAresta = GeraArestasDoPoligono(poligonoAtual);
+		segundaAresta = GeraArestasDoPoligono(poligonoAnterior);
+		arestasEmComum = RetornaArestasEmComum(poligonoAtual, poligonoAnterior);
+		if arestasEmComum == []:
 			return
-		fixedPoint = commonEdges[0].midpoint();
-		axis = numpy.cross(n1, n2);
-		thisPoly.transAngle = 1;
-		thisPoly.transPoint = fixedPoint;
-		thisPoly.transAxis = axis;
-		thisPoly.transMaxAngle = angle;
-		thisPoly.transParent = prevPoly;
-		trans = translateAndRotate(thisPoly.transAngle, thisPoly.transPoint, thisPoly.transAxis, thisPoly.transParent);
-		thisPoly.transform = trans;
+		pontoFixo = arestasEmComum[0].midpoint();
+		eixo = numpy.cross(normalPoligonoAtual, normalPoligonoAnterior);
+		poligonoAtual.transAngle = 1;
+		poligonoAtual.transPoint = pontoFixo;
+		poligonoAtual.transAxis = eixo;
+		poligonoAtual.transMaxAngle = angulo;
+		poligonoAtual.transParent = poligonoAnterior;
+		trans = translateAndRotate(poligonoAtual.transAngle, poligonoAtual.transPoint, poligonoAtual.transAxis, poligonoAtual.transParent);
+		poligonoAtual.transform = trans;
 	return
 
-def ResetColors(polygons):
-	i = 0;
-	for poly in polygons:
-		poly.color = colors[i % len(colors)];
-		i += 1;
-	return polygons;
+def translateAndRotate(ang, p, eixo, parent):
+	glPushMatrix();
+	glLoadIdentity();
+	glMultMatrixf(parent.transform);
+	glTranslate(p[0],p[1],p[2]);
+	glRotate(ang, eixo[0], eixo[1], eixo[2]);
+	glTranslate(-p[0],-p[1],-p[2]);
+	T = glGetDoublev ( GL_MODELVIEW_MATRIX );
+	glPopMatrix();
+	return T;
 
-# Recebe o ponto onde o mouse clicou, e um array de poligonos, e retorna o poligono que foi clicado
-def PickSurface(mouseX, mouseY, polygons):
+def RetornaFaceInterceptadaPelaReta(mouseX, mouseY, poligonos):
 	global objetosADesenhar;
 
 	# passar os pontos mouseX e mouseY para a rotacao certa
@@ -297,39 +277,29 @@ def PickSurface(mouseX, mouseY, polygons):
 	p2Certo = Matrix3fMulMatrix3f(g_ThisRot, p2);
 	pontoOrigem = Point(p1Certo[0], p1Certo[1], p1Certo[2]);
 	pontoDestino = Point(p2Certo[0], p2Certo[1], p2Certo[2]);
-	line = Line(pontoOrigem, pontoDestino);
+	linha = Line(pontoOrigem, pontoDestino);
 
-	interceptedPolygons = WhichPolygonsDoesLineCross(line, polygons);
-	pickedPolygon = WhichPolygonIsCloserToScreen(interceptedPolygons, line);
+	poligonoMaisProximo = RetornaPoligonoMaisProximoInterceptadaPelaReta(poligonos, linha);
 
-	if pickedPolygon != None:
-		objetosADesenhar[0] = ResetColors(objetosADesenhar[0]);
-		objetosADesenhar[0][objetosADesenhar[0].index(pickedPolygon)].color = [0.502, 0.502, 0.502] # gray
-	return pickedPolygon;
+	return poligonoMaisProximo;
 
-# Recebe uma linha e um array de poligonos, e retorna quais poligonos sao interceptados pela linha
-def WhichPolygonsDoesLineCross(line, polygons):
-	polyArray = [];
-	for poly in polygons:
-		contains, p, t = poly.doesLineCrossPolygon(line);
+def RetornaPoligonoInterceptadoPelaReta(linha, poligonos):
+	arrayDePoligonos = [];
+	for poligono in poligonos:
+		contains, p, t = poligono.doesLineCrossPolygon(linha);
 		if (contains):
-			polyArray.append(poly);
-	return polyArray;
+			arrayDePoligonos.append(poligono);
+	return arrayDePoligonos;
 
-# Recebe um array de poligonos, e retorna aquele que estiver mais proximo da tela
-def WhichPolygonIsCloserToScreen(polygons, clickLine):
-	closerPoly = None;
-	distanceToOrigin = 2;
-
-	for poly in polygons:
-		intersection = clickLine.intersectToPlane(poly);
-
-		if intersection[1] < distanceToOrigin:
-			distanceToOrigin = intersection[1];
-			closerPoly = poly;
-
-	return closerPoly;
-
+def RetornaPoligonoMaisProximoInterceptadaPelaReta(poligonos, retaDoClique):
+    poligonoMaisProximo = 0
+    menorDistancia = 999.9
+    for poligono in poligonos:
+        interseccao = poligono.doesLineCrossPolygon(retaDoClique)
+	if (interseccao[1]):
+            if (interseccao[2] < menorDistancia):
+                poligonoMaisProximo = poligono
+    return poligonoMaisProximo
 
 def ScreenToOGLCoords(cursor_x, cursor_y):
 	viewport = glGetDoublev(GL_VIEWPORT);
@@ -343,48 +313,35 @@ def ScreenToOGLCoords(cursor_x, cursor_y):
 
 	return posX, posY;
 
-def translateAndRotate(ang, p, axis, parent):
-	glPushMatrix();
-	glLoadIdentity();
-	glMultMatrixf(parent.transform);
-	glTranslate(p[0],p[1],p[2]);
-	glRotate(ang, axis[0], axis[1], axis[2]);
-	glTranslate(-p[0],-p[1],-p[2]);
-	T = glGetDoublev ( GL_MODELVIEW_MATRIX );
-	glPopMatrix();
-	return T;
+def GeraArestasDoPoligono(poligono):
+	arestas = [];
+	for i in range(len(poligono.points) - 1):
+		arestas.append(Line(poligono.points[i], poligono.points[i+1]));
+	arestas.append(Line(poligono.points[-1], poligono.points[0]));
+	return arestas;
 
-def GeneratePolygonEdges(polygon):
-	edges = [];
-	for i in range(len(polygon.points) - 1):
-		edges.append(Line(polygon.points[i], polygon.points[i+1]));
-	edges.append(Line(polygon.points[-1], polygon.points[0]));
-	return edges;
-
-def DrawSolid(facesDoSolido):
+def desenhaPoliedro(facesDoPoliedro):
 	global velocidadeAngular
-	i = 0;
-	for polygon in facesDoSolido:
+	contador = 0;
+	for poligono in facesDoPoliedro:
 
-			# ANIMACAO:
-		if polygon.transMaxAngle != None:
-			polygon.transform = translateAndRotate(polygon.transAngle, polygon.transPoint, polygon.transAxis, polygon.transParent);
-			polygon.transAngle += velocidadeAngular;
-			if polygon.transAngle >= polygon.transMaxAngle and velocidadeAngular > 0:
+		if poligono.transMaxAngle != None:
+			poligono.transform = translateAndRotate(poligono.transAngle, poligono.transPoint, poligono.transAxis, poligono.transParent);
+			poligono.transAngle += velocidadeAngular;
+			if poligono.transAngle >= poligono.transMaxAngle and velocidadeAngular > 0:
 				velocidadeAngular *= -1;
-			elif polygon.transAngle <= 0 and velocidadeAngular < 0:
+			elif poligono.transAngle <= 0 and velocidadeAngular < 0:
 				velocidadeAngular *= -1;
 
 
-		glMultMatrixf(polygon.transform);
+		glMultMatrixf(poligono.transform);
 
 		glBegin(GL_POLYGON);
-		if polygon.color == None:
-			glColor3fv(colors[i % len(colors)]);
-			i += 1;
+		if poligono.color == None:
+			glColor3fv(rand.random())
 		else:
-			glColor3fv(polygon.color);
-		for point in polygon.points:
+			glColor3fv(poligono.color);
+		for point in poligono.points:
 			glVertex3f(point[0], point[1], point[2]);
 		glEnd();
 
@@ -392,19 +349,14 @@ def DrawSolid(facesDoSolido):
 		glTranslatef(0.0,0.0,-6.0);
 		glMultMatrixf(g_Transform);
 
-	for polygon in facesDoSolido:
-		glBegin(GL_LINES);
-		glColor3f(1,1,1);
-
-		for i in range(len(polygon.points) - 1):
-			glVertex3f(polygon.points[i][0], polygon.points[i][1], polygon.points[i][2]);
-			glVertex3f(polygon.points[i+1][0], polygon.points[i+1][1], polygon.points[i+1][2]);
-
-		glVertex3f(polygon.points[-1][0], polygon.points[-1][1], polygon.points[-1][2]);
-		glVertex3f(polygon.points[0][0], polygon.points[0][1], polygon.points[0][2]);
-		glEnd();
-
 	return
+
+def ReiniciaCores(poligonos):
+	aux = 0;
+	for poligono in poligonos:
+		poligono.color = cores[aux % len(cores)];
+		aux += 1;
+	return poligonos;
 
 def Draw ():
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);				# // Clear Screen And Depth Buffer
@@ -415,18 +367,15 @@ def Draw ():
 	glMultMatrixf(g_Transform);										# // NEW: Apply Dynamic Transform
 	n = len(objetosADesenhar);
 	for i in range(n):
-		DrawSolid(objetosADesenhar[i]);
+		desenhaPoliedro(objetosADesenhar[i]);
 	glPopMatrix();													# // NEW: Unapply Dynamic Transform
 
 	glFlush ();														# // Flush The GL Rendering Pipeline
 	glutSwapBuffers()
 	return
 
-def GetColor(color):
-	return color_dict[tuple(color)];
-
-def Length(v):
-	return math.sqrt(Vector3fDot(v, v))
+def Length(vertice):
+	return math.sqrt(Vector3fDot(vertice, vertice))
 
 def Angle(v1, v2):
 	return math.acos(Vector3fDot(v1, v2) / (Length(v1) * Length(v2)))
