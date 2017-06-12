@@ -275,10 +275,7 @@ def RetornaPoligonoMaisProximoInterceptadaPelaReta(poligonos, retaDoClique):
 	for poligono in poligonos:
 		interseccao = poligono.doesLineCrossPolygon(retaDoClique)
 		if (interseccao[0]):
-			print('entrei no if')
 			if (interseccao[2] < menorDistancia):
-				print(interseccao)
-				print(poligonoAtual)
 				poligonoMaisProximo = poligono
 		poligonoAtual += 1
 	return poligonoMaisProximo
