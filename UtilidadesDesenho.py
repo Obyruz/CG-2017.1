@@ -3,6 +3,7 @@ from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from numpy import *
 import sys
+import time
 import copy
 import math
 import numpy
@@ -12,6 +13,11 @@ from Geometry import *
 from graph2 import *
 
 from ArcBall import * 				# ArcBallT and this tutorials set of points/vectors/matrix types
+
+try:
+    from PIL import Image
+except ImportError as err:
+    from Image import open
 
 PI2 = 2.0*3.1415926535
 
@@ -25,18 +31,24 @@ g_isOpening = False
 g_isNotMoving = True
 g_quadratic = None
 g_notRotated = True
+imageID = 1
 
 facesDoPoliedro = []
 objetosADesenhar = []
 
 grafo = Graph()
 
-velocidadeAngular = 0.1
+velocidadeAngular = 0.9
+
+cima = -999.9
+direita = -999.9
+baixo = 999.9
+esquerda = 999.9
 
 cores = ([rand.random(),rand.random(),rand.random()], [rand.random(),rand.random(),rand.random()], [rand.random(),rand.random(),rand.random()], [rand.random(),rand.random(),rand.random()], [rand.random(),rand.random(),rand.random()], [rand.random(),rand.random(),rand.random()], [rand.random(),rand.random(),rand.random()])
 
 def Initialize (Width, Height, entrada):				# We call this right after our OpenGL window is created.
-	global g_quadratic, facesDoPoliedro, objetosADesenhar, grafo
+	global g_quadratic, facesDoPoliedro, objetosADesenhar, grafo, imageID
 
 	if len(entrada) < 2:
 	    print('Nenhum arquivo foi passado, por favor, entre com um arquivo.')
@@ -47,12 +59,15 @@ def Initialize (Width, Height, entrada):				# We call this right after our OpenG
 	glDepthFunc(GL_LEQUAL)								# The Type Of Depth Test To Do
 	glEnable(GL_DEPTH_TEST)								# Enables Depth Testing
 	glShadeModel (GL_FLAT)								# Select Flat Shading (Nice Definition Of Objects)
+
 	glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST) 	# Really Nice Perspective Calculations
+
+	glEnable(GL_TEXTURE_2D)
+	loadImage()
 
 	g_quadratic = gluNewQuadric()
 	gluQuadricNormals(g_quadratic, GLU_SMOOTH)
 	gluQuadricDrawStyle(g_quadratic, GLU_FILL)
-	# Why? this tutorial never maps any textures?! ?
 
 	vertices, faces = RecebePoliedroDoArquivo(entrada)
 	facesDoPoliedro = ConstroiPoliedro(vertices, faces)
@@ -63,6 +78,23 @@ def Initialize (Width, Height, entrada):				# We call this right after our OpenG
 	#gluQuadricTexture(g_quadratic, GL_TRUE)			# // Create Texture Coords
 
 	return True
+
+def loadImage():
+	image = Image.open("nekomimi.jpg")
+	
+	ix = image.size[0]
+	iy = image.size[1]
+	image = image.tostring("raw", "RGBX", 0, -1)
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT,1)
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ix, iy, 0, GL_RGBA, GL_UNSIGNED_BYTE, image)
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+
+	glGenerateMipmap(GL_TEXTURE_2D, GL_RGB, ix, iy, GL_UNSIGNED_BYTE, image)
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
 
 def ConstroiGrafo(poligonos):
 	grafoEmConstrucao = Graph()
@@ -245,6 +277,30 @@ def Visit(poligonoAtual, poligonoAnterior):
 		poligonoAtual.transform = trans
 	return
 
+def percorreEncontrandoMaximo():
+	global grafo, esquerda, direita, cima, baixo
+
+	for poligono in grafo.vertices():
+#		print(poligono.transform)
+		for vertice in poligono.points:
+			transformNp = numpy.array(poligono.transform)
+			v = numpy.dot(vertice.np(),transformNp)
+			print(v)
+			if v[0] < esquerda:
+				esquerda = v[0]
+			if v[0] > direita:
+				direita = v[0]
+			if v[1] < baixo:
+				baixo = v[1]
+			if v[1] > cima:
+				cima = v[1]
+		print('lalalalala')
+
+	print('esquerda ' + str(esquerda))
+	print('direita ' + str(direita))
+	print('cima ' + str(cima))
+	print('baixo ' + str(baixo))
+
 def translateAndRotate(ang, p, eixo, parent):
 	glPushMatrix()
 	glLoadIdentity()
@@ -300,28 +356,42 @@ def GeraArestasDoPoligono(poligono):
 	return arestas
 
 def desenhaPoliedro(facesDoPoliedro):
-	global velocidadeAngular
-	contador = 0
+	global velocidadeAngular, esquerda, direita, cima, baixo
 	for poligono in facesDoPoliedro:
 
 		if poligono.transMaxAngle != None:
 			poligono.transform = translateAndRotate(poligono.transAngle, poligono.transPoint, poligono.transAxis, poligono.transParent)
 			poligono.transAngle += velocidadeAngular
 			if poligono.transAngle >= poligono.transMaxAngle and velocidadeAngular > 0:
-				velocidadeAngular *= -1
+				velocidadeAngular = 0
+				percorreEncontrandoMaximo() #cima,baixo,direita,esquerda sao os maximos
+				print('cheguei la')
 			elif poligono.transAngle <= 0 and velocidadeAngular < 0:
 				velocidadeAngular *= -1
 
+		deltaX = direita - esquerda
+		deltaY = cima - baixo
 
 		glMultMatrixf(poligono.transform)
 
 		glBegin(GL_POLYGON)
+
+		pointAntigo = Point(1, 1)
+
 		if poligono.color == None:
 			glColor3fv(rand.random())
 		else:
 			glColor3fv(poligono.color)
 		for point in poligono.points:
+			transformNp = numpy.array(poligono.transform)
+			v = numpy.dot(point.np(),transformNp)
+
+			if poligono.transAngle >= poligono.transMaxAngle and velocidadeAngular == 0:
+#
+				print(v)
+				glTexCoord2f((v[0])/deltaX, (v[1])/deltaY)
 			glVertex3f(point[0], point[1], point[2])
+
 		glEnd()
 
 		glLoadIdentity()
@@ -333,13 +403,15 @@ def desenhaPoliedro(facesDoPoliedro):
 def Draw ():
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)				# // Clear Screen And Depth Buffer
 	glLoadIdentity()												# // Reset The Current Modelview Matrix
-	glTranslatef(0.0,0.0,-6.0)									# // Move Left 1.5 Units And Into The Screen 6.0
+	glTranslatef(0.0,0.0,-6.0)									# // Move Into The Screen 6.0
 
 	glPushMatrix()													# // NEW: Prepare Dynamic Transform
 	glMultMatrixf(g_Transform)										# // NEW: Apply Dynamic Transform
 	n = len(objetosADesenhar)
+
 	for i in range(n):
 		desenhaPoliedro(objetosADesenhar[i])
+
 	glPopMatrix()													# // NEW: Unapply Dynamic Transform
 
 	glFlush ()														# // Flush The GL Rendering Pipeline

@@ -62,27 +62,6 @@ ESCAPE = '\033'
 # Number of the glut window.
 window = 0
 
-
-
-
-
-
-
-# A general OpenGL initialization function.  Sets all of the initial parameters.
-def InitGL(Width, Height):				# We call this right after our OpenGL window is created.
-
-	glShadeModel(GL_SMOOTH)				# Enables Smooth Color Shading
-	glClearColor(0.0, 0.0, 0.0, 0.5)	# This Will Clear The Background Color To Black
-	glClearDepth(1.0)					# Enables Clearing Of The Depth Buffer
-	glEnable(GL_DEPTH_TEST)				# Enables Depth Testing
-	glDepthFunc(GL_LEQUAL)				# The Type Of Depth Test To Do
-	glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST) # Really Nice Perspective Calculations
-
-
-
-	return True									# // Initialization Went OK
-
-
 # Reshape The Window When It's Moved Or Resized
 def ReSizeGLScene(Width, Height):
 	if Height == 0:						# Prevent A Divide By Zero If The Window Is Too Small
