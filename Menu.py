@@ -1,4 +1,7 @@
-from Tkinter import *
+try:
+	from Tkinter import *
+except ImportError as err:
+	from tkinter import *
 import sys
 import os
 class menuTrabalhoCG:

@@ -181,7 +181,7 @@ def setupTexture():
 
 
 angularSpeed = 0.
-factor = 1./1000.
+factor = 1./100.
 
 def Draw ():
     global POLIEDRY,RAY,profundidade,g_isFaceSelected
