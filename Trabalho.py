@@ -125,7 +125,8 @@ def Upon_Click (button, button_state, cursor_x, cursor_y):
     global POLIEDRY,g_isFaceSelected,RAY, factor, angularSpeed
 
     if button_state == GLUT_DOWN:
-        p_s1 = get_mouse_position_transform(cursor_x,cursor_y,-2.0)
+        p_s1 = get_mouse_position_transform(cursor_x,cursor_y,1.0)
+        print(p_s1)
         RAY = Line(Point(0.0,0.0,0.0),p_s1)
         if (g_isFaceSelected == False)and(button == GLUT_LEFT_BUTTON):
             if(POLIEDRY.face_intersect(RAY) != -1):
@@ -181,7 +182,7 @@ def setupTexture():
 
 
 angularSpeed = 0.
-factor = 1./1000.
+factor = 1./100.
 
 def Draw ():
     global POLIEDRY,RAY,profundidade,g_isFaceSelected

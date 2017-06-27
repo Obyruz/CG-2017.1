@@ -56,7 +56,7 @@ class Polihedron(object):
         self.useTexture = False
         self.mapRotate  = matrix.identity()
         self.textureMap = {}
-
+        self.aux = 0
         edges_per_face = []
         points_per_face = []
         points_per_face_orig = []
@@ -123,20 +123,29 @@ class Polihedron(object):
             else:
                 points = self.points_per_face_orig[i]
 
-            count =0
+            count = 0
+            texturePerFace = [0]*len(points)
             for point in points:
-                actualPoint = self.points_per_face_orig[i][count]
-                print(actualPoint)
-                if self.useTexture and actualPoint not in self.textureMap.keys():
+                #print(actualPoint)
+                if self.useTexture:# and actualPoint not in self.textureMap.keys():
                     p = self.box.normalize(point.transform(self.mapRotate))
-                    self.textureMap[actualPoint] = p
-                    #print(p)
-                    glTexCoord3f(p.x,p.y)
+                    texturePerFace[count] = p
+                    texture = p
+                    if count == (len(points)-1) and i not in self.textureMap.keys():
+                        self.textureMap[i] = texturePerFace
+                    elif i in self.textureMap.keys():
+                        textureInThisFace = self.textureMap[i]
+                        texture = textureInThisFace[count]
+                    #texture = self.box.normalize(wrongSizedTexture)
+                    #p = self.box.normalize(point.transform(self.mapRotate))
+                    #print(self.aux)
+                    #print(round(point.x,2), round(point.y, 2), round(point.z,2))
+                    glTexCoord2f(texture.x,texture.y)
                     glVertex3f(point.x,point.y,point.z)
-                elif self.useTexture and actualPoint in self.textureMap.keys():
-                    texture = self.textureMap[actualPoint]
-                    glTexCoord2f(texture.x, texture.y)
-                    glVertex3f(point.x,point.y,point.z)
+                #elif self.useTexture and actualPoint in self.textureMap.keys():
+                    #texture = self.textureMap[actualPoint]
+                    #glTexCoord2f(texture.x, texture.y)
+                    #glVertex3f(point.x,point.y,point.z)
                 else:
                     glVertex3f(point.x,point.y,point.z)
                 count += 1
