@@ -1,7 +1,7 @@
 from OpenGL.GL   import *
 from OpenGL.GLUT import *
 from OpenGL.GLU  import *
-import sys,os
+import sys,os, time
 
 from libs import *
 
@@ -181,7 +181,7 @@ def setupTexture():
 
 
 angularSpeed = 0.
-factor = 1./100.
+factor = 1./1000.
 
 def Draw ():
     global POLIEDRY,RAY,profundidade,g_isFaceSelected
@@ -202,8 +202,7 @@ def Draw ():
             POLIEDRY.set_texture()
             if POLIEDRY.face_selected == -1:
                 return
-            if((angularSpeed >= 1)or(angularSpeed < 0.)):
-                factor *= -1.
+            factor *= -1.
 
     if POLIEDRY.isOpened:
         POLIEDRY.open_like_BFS(1.0)

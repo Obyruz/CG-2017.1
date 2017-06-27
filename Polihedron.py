@@ -3,7 +3,7 @@ from OpenGL.GLUT import *
 from OpenGL.GLU import *
 
 import math
-import time
+
 import copy
 
 from libs import matrix
@@ -22,8 +22,6 @@ class Polihedron(object):
         self.box    = Box()
         self.vertex = PLY.vertex
         self.faces  = PLY.faces
-        self.textura = {}
-        self.mapeamentoTextura = []
         self.colors = [
                 (0.0,0.0,0.5),
                 (0.0,0.0,1.0),
@@ -57,7 +55,7 @@ class Polihedron(object):
         self.isAnimated = False
         self.useTexture = False
         self.mapRotate  = matrix.identity()
-        self.count = 0
+        self.textureMap = {}
 
         edges_per_face = []
         points_per_face = []
@@ -107,7 +105,6 @@ class Polihedron(object):
 
     def draw(self):
         points = []
-        aux = 0
 
         for i,face in enumerate(self.faces):
             if ( len(face) % 3 == 0):
@@ -126,25 +123,23 @@ class Polihedron(object):
             else:
                 points = self.points_per_face_orig[i]
 
+            count =0
             for point in points:
-                if self.useTexture and self.count == 0:
+                actualPoint = self.points_per_face_orig[i][count]
+                print(actualPoint)
+                if self.useTexture and actualPoint not in self.textureMap.keys():
                     p = self.box.normalize(point.transform(self.mapRotate))
-                    self.mapeamentoTextura.append(p)
-                    print(p)
-                    glTexCoord2f(p.x,p.y)
+                    self.textureMap[actualPoint] = p
+                    #print(p)
+                    glTexCoord3f(p.x,p.y)
                     glVertex3f(point.x,point.y,point.z)
-                    aux += 1
-                elif self.useTexture and self.count > 0:
-                    ponto = self.mapeamentoTextura[aux]
-                    glTexCoord2f(ponto.x,ponto.y)
+                elif self.useTexture and actualPoint in self.textureMap.keys():
+                    texture = self.textureMap[actualPoint]
+                    glTexCoord2f(texture.x, texture.y)
                     glVertex3f(point.x,point.y,point.z)
-                    aux += 1
                 else:
                     glVertex3f(point.x,point.y,point.z)
-            
-            if(aux == 24):
-                    print('incrementando count')
-                    self.count+=1
+                count += 1
             glEnd()
 
     def face_intersect(self,ray):
