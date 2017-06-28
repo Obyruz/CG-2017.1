@@ -7,6 +7,7 @@ import math
 import copy
 
 import matrix
+import random as random
 from geometry import Point,Polygon,Line,Box
 
 import numpy as np
@@ -23,32 +24,32 @@ class Polihedron(object):
         self.vertex = PLY.vertex
         self.faces  = PLY.faces
         self.colors = [
-                (0.0,0.0,0.5),
-                (0.0,0.0,1.0),
-                (0.0,0.5,0.0),
-                (0.0,0.5,0.5),
-                (0.0,0.5,1.0),
-                (0.0,1.0,0.0),
-                (0.0,1.0,0.5),
-                (0.0,1.0,1.0),
-                (0.5,0.0,0.0),
-                (0.5,0.0,0.5),
-                (0.5,0.0,1.0),
-                (0.5,0.5,0.0),
-                (0.5,0.5,0.5),
-                (0.5,0.5,1.0),
-                (0.5,1.0,0.0),
-                (0.5,1.0,0.5),
-                (0.5,1.0,1.0),
-                (1.0,0.0,0.0),
-                (1.0,0.0,0.5),
-                (1.0,0.0,1.0),
-                (1.0,0.5,0.0),
-                (1.0,0.5,0.5),
-                (1.0,0.5,1.0),
-                (1.0,1.0,0.0),
-                (1.0,1.0,0.5),
-                (1.0,1.0,1.0)
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random()),
+                (random.random(),random.random(),random.random())
                 ]
 
         self.isOpened = False

@@ -6,7 +6,7 @@ import sys,os, time
 import matrix, geometry
 
 from ArcBall    import *
-from Polihedron import Polihedron
+from Poliedro import Polihedron
 from LeitorPly        import PLY
 from geometry import Point,Line
 
