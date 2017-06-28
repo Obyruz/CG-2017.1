@@ -94,18 +94,6 @@ def identity():
     return M
 
 ## Matrix multiplication.
-#  The matrix objects are a subclass of the numpy arrays (ndarray). 
-#  The matrix objects inherit all the attributes and methods of ndarray. 
-#  Another difference is that numpy matrices are strictly 2-dimensional, 
-#  while numpy arrays can be of any dimension, i.e. they are n-dimensional. 
-#
-#  The most important advantage of matrices is that they provide convenient 
-#  notations for the matrix multiplication. If X and Y are two Matrices then 
-#  X * Y defines the matrix multiplication. While on the other hand, 
-#  if X and Y are ndarrays, X * Y define an element by element multiplication.
-#
-#  If we want to perform matrix multiplication with two numpy arrays (ndarray), 
-#  we have to use the dot product.
 #
 #  Same as:
 #    glPushMatrix()
@@ -115,7 +103,6 @@ def identity():
 #    glPopMatrix()
 #    return c
 #
-#  @see http://www.python-course.eu/matrix_arithmetic.php
 #  @param a first matrix.
 #  @param b second matrix.
 #  @return a x b.
@@ -151,37 +138,29 @@ def translateAndTransform(t, p):
 	T = translate(p.x,p.y,p.z) * t * translate(-p.x,-p.y,-p.z)
 	return T
 
-## Return a rotation matrix, given three angles in the order: ZYX (apply Z first, then Y, then X).
-#  When the rotation is specified as rotations about three distinct 
-#  axes (e.g. X-Y-Z), they should be called Tait–Bryan angles, 
-#  but the popular term is still Euler angles. Therefore, we are going 
-#  to call them Euler angles as well.
-#
-#  The industry standard is Z-Y-X because that corresponds to yaw, pitch and roll.
-#
-#  Note that: @f$(XYZ)^T = Z^T(a_z)\ Y^T(a_y)\ X^T(a_x) = Z(-a_z)\ Y(-a_y)\ X(-a_x)@f$
+## Return a rotation matrix, given three angles in the order: ZYX
 #
 #  @see http://www.chrobotics.com/library/understanding-euler-angles
-#  @see https://www.learnopencv.com/rotation-matrix-to-euler-angles/
 #  @param angles a list with angle x, y and z.
-#  @return a matrix X * Y * Z to be applied on column vectors (vector is on the right).
+#  @return a matrix Z * Y * X
 #
 def rotateZYX(angles):
-	return rotateXYZ(angles).T
+	m1 = rotate(angles[2], 0.0, 0.0, 1.0)
+	m2 = rotate(angles[1], 0.0, 1.0, 0.0)
+	m3 = rotate(angles[0], 1.0, 0.0, 0.0)
+	# m1 x m2 x m3
+	m = dot(dot(m1,m2),m3)
+	return np.asarray(m)
 
-## Return a rotation matrix, given three angles in the order: XYZ (apply X first, then Y, then Z).
+## Return a rotation matrix, given three angles in the order: XYZ
 #
 #  @see http://www.chrobotics.com/library/understanding-euler-angles
 #  @param angles a list with angle x, y and z.
-#  @return a matrix Z * Y * X to be applied on column vectors (vector is on the right).
+#  @return a matrix X * Y * Z
 #
 def rotateXYZ(angles):
-	rx = rotate(angles[0], 1.0, 0.0, 0.0)
-	ry = rotate(angles[1], 0.0, 1.0, 0.0)
-	rz = rotate(angles[2], 0.0, 0.0, 1.0)
-	# rz * ry * rx
-	m = dot(rz,dot(ry,rx))
-	return np.asarray(m)
+
+	return rotateZYX(angles).T
 
 ## Returns a rotation matrix about a given axis.
 #

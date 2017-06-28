@@ -6,8 +6,8 @@ import math
 
 import copy
 
-from libs import matrix
-from libs.geometry import Point,Polygon,Line,Box
+import matrix
+from geometry import Point,Polygon,Line,Box
 
 import numpy as np
 
@@ -128,20 +128,23 @@ class Polihedron(object):
             for point in points:
                 #print(actualPoint)
                 if self.useTexture:# and actualPoint not in self.textureMap.keys():
-                    p = self.box.normalize(point.transform(self.mapRotate))
-                    texturePerFace[count] = p
-                    texture = p
-                    if count == (len(points)-1) and i not in self.textureMap.keys():
-                        self.textureMap[i] = texturePerFace
-                    elif i in self.textureMap.keys():
-                        textureInThisFace = self.textureMap[i]
-                        texture = textureInThisFace[count]
-                    #texture = self.box.normalize(wrongSizedTexture)
-                    #p = self.box.normalize(point.transform(self.mapRotate))
-                    #print(self.aux)
-                    #print(round(point.x,2), round(point.y, 2), round(point.z,2))
-                    glTexCoord2f(texture.x,texture.y)
-                    glVertex3f(point.x,point.y,point.z)
+                    try:
+                        p = self.box.normalize(point.transform(self.mapRotate))
+                        texturePerFace[count] = p
+                        texture = p
+                        if count == (len(points)-1) and i not in self.textureMap.keys():
+                            self.textureMap[i] = texturePerFace
+                        elif i in self.textureMap.keys():
+                            textureInThisFace = self.textureMap[i]
+                            texture = textureInThisFace[count]
+                        #texture = self.box.normalize(wrongSizedTexture)
+                        #p = self.box.normalize(point.transform(self.mapRotate))
+                        #print(self.aux)
+                        #print(round(point.x,2), round(point.y, 2), round(point.z,2))
+                        glTexCoord2f(texture.x,texture.y)
+                        glVertex3f(point.x,point.y,point.z)
+                    except AttributeError as error:
+                        pass
                 #elif self.useTexture and actualPoint in self.textureMap.keys():
                     #texture = self.textureMap[actualPoint]
                     #glTexCoord2f(texture.x, texture.y)

@@ -1,157 +1,84 @@
-# /***********************************************
-# *                                              *
-# *    Jeff Molofee's Revised OpenGL Basecode    *
-# *  Huge Thanks To Maxwell Sayles & Peter Puck  *
-# *            http://nehe.gamedev.net           *
-# *                     2001                     *
-# *            Adapted to PyOpenGL GLUT          *
-# *                                              *
-# ***********************************************/
-#
-# NeHe Tutorial Lesson: 48 - ArcBall Rotation
-#
-# C version of tutorial by Terence J. Grant
-# This code was created by Jeff Molofee 2000
-# Ported to PyOpenGL 2.0 by Brian Leair 2004
-#
-# The port was based on the PyOpenGL tutorials and from
-# PyOpenGLContext (tests/glprint.py)
-#
-# If you've found this code useful, feel free to let me know
-# at (Brian Leair telcom_sage@yahoo.com).
-#
-# See original source and C based tutorial at http://nehe.gamedev.net
-#
-# Note:
-# -----
-# This code is not an ideal example of Pythonic coding or use of OO
-# techniques. It is a simple and direct exposition of how to use the
-# Open GL API in Python via the PyOpenGL package. It also uses GLUT,
-# a high quality platform independent library. Due to using these APIs,
-# this code is more like a C program using procedural programming.
-#
-# To run this example you will need:
-# Python 	- www.python.org (v 2.3 as of 1/2004)
-# PyOpenGL 	- pyopengl.sourceforge.net (v 2.0.1.07 as of 1/2004)
-# Numeric Python	- (v.22 of "numpy" as of 1/2004) numpy.sourceforge.net
-#
-#
-
-from OpenGL.GL import *
-from OpenGL.GLUT import *
-from OpenGL.GLU import *
-import sys
-
-from UtilidadesDesenho import *		# Draw (), Initialize () and all the real OpenGL work.
-from ArcBall import *		# // *NEW* ArcBall header
-
-
-# *********************** Globals ***********************
-# Python 2.2 defines these directly
 try:
-	True
-except NameError:
-	True = 1==1
-	False = 1==0
+	from Tkinter import *
+except ImportError as err:
+	from tkinter import *
+import sys
+import os
+class menuTrabalhoCG:
+    def __init__(self, master):
+        self.master = master
+        master.title("Trabalho CG 2017.1")
 
+        #altera o tamanho do menu
+        master.geometry("600x600")
 
-# Some api in the chain is translating the keystrokes to this octal string
-# so instead of saying: ESCAPE = 27, we use the following.
-ESCAPE = '\033'
+        self.label = Label(master, text="Selecione a textura e o poligono", font=("Fixedsys",16))
+        self.label.pack()
 
-# Number of the glut window.
-window = 0
+        #frame para os poligonos
+        self.poligonos = Frame(master)
+        self.poligonos.pack(side=RIGHT)
 
-# Reshape The Window When It's Moved Or Resized
-def ReSizeGLScene(Width, Height):
-	if Height == 0:						# Prevent A Divide By Zero If The Window Is Too Small
-		Height = 1
+        #botao que fecha o menu
+        self.close_button = Button(master, text="Fechar", command=master.quit)
+        self.close_button.pack(in_=self.poligonos,side=BOTTOM,expand = True)
+        self.close_button.config(width = 5)
 
-	glViewport(0, 0, Width, Height)		# Reset The Current Viewport And Perspective Transformation
-	glMatrixMode(GL_PROJECTION)			# // Select The Projection Matrix
-	glLoadIdentity()					# // Reset The Projection Matrix
-	# // field of view, aspect ratio, near and far
-	# This will squash and stretch our objects as the window is resized.
-	# Note that the near clip plane is 1 (hither) and the far plane is 1000 (yon)
-	gluPerspective(75.0, float(Width)/float(Height), 1, 100.0)
+        #variavel que salva a textura escolhida
+        self.textura = StringVar(master)
 
-	glMatrixMode (GL_MODELVIEW);		# // Select The Modelview Matrix
-	glLoadIdentity ();					# // Reset The Modelview Matrix
-	g_ArcBall.setBounds (Width, Height)	# //*NEW* Update mouse bounds for arcball
-	return
+        #botao para a textura 1
+        self.imagem1 = PhotoImage(file='napoleon.gif')
+        self.botao_textura1 = Radiobutton(text='Napoleon',value='napoleon.jpg',variable=self.textura)
+        self.botao_textura1.pack(anchor=W)
+        self.botao_textura1.config(compound=BOTTOM,image=self.imagem1)
 
+        #botao para a textura 2
+        self.imagem2 = PhotoImage(file='monalisa.gif')
+        self.botao_textura2 = Radiobutton(text='Mona Lisa',value='monalisa.jpg',variable=self.textura)
+        self.botao_textura2.pack(anchor=W)
+        self.botao_textura2.config(compound=BOTTOM,image=self.imagem2)
 
-# The function called whenever a key is pressed. Note the use of Python tuples to pass in: (key, x, y)
-def keyPressed(*args):
-	global g_quadratic
-	# If escape is pressed, kill everything.
-	key = args [0]
-	if key == ESCAPE:
-		gluDeleteQuadric (g_quadratic)
-		sys.exit ()
+        #botao que seleciona o cubo
+        self.botao_cubo = Button(master, text="Cubo", command=self.Cubo)
+        self.botao_cubo.pack(in_=self.poligonos,expand = True)
+        self.botao_cubo.config(height=3, width=10)
 
+        #botao que seleciona o tetraedro
+        self.botao_tetraedro = Button(master, text="Tetraedro", command=self.Tetraedro)
+        self.botao_tetraedro.pack(in_=self.poligonos,expand = True)
+        self.botao_tetraedro.config(height=3, width=10)
 
+        #botao que seleciona o octaedro
+        self.botao_octaedro = Button(master, text="Octaedro", command=self.Octaedro)
+        self.botao_octaedro.pack(in_=self.poligonos,expand = True)
+        self.botao_octaedro.config(height=3, width=10)
 
-def main():
-	global window
-	# pass arguments to init
-	glutInit(sys.argv)
+        #botao que seleciona o dodecaedro
+        self.botao_dodecaedro = Button(master, text="Dodecaedro", command=self.Dodecaedro)
+        self.botao_dodecaedro.pack(in_=self.poligonos,expand = True)
+        self.botao_dodecaedro.config(height=3, width=10)
 
-	# Select type of Display mode:
-	#  Double buffer
-	#  RGBA color
-	# Alpha components supported
-	# Depth buffer
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH)
+        #botao que seleciona o icosaedro
+        self.botao_icosaedro = Button(master, text="Icosaedro", command=self.Icosaedro)
+        self.botao_icosaedro.pack(in_=self.poligonos,expand = True)
+        self.botao_icosaedro.config(height=3, width=10)
 
-	# get a 640 x 480 window
-	glutInitWindowSize(640, 480)
+    def Cubo(self):
+        os.system('python UtilidadesDesenho.py cube.ply '+self.textura.get())
 
-	# the window starts at the upper left corner of the screen
-	glutInitWindowPosition(0, 0)
+    def Tetraedro(self):
+        os.system('python UtilidadesDesenho.py tetrahedron.ply '+self.textura.get())
 
-	# Okay, like the C version we retain the window id to use when closing, but for those of you new
-	# to Python, remember this assignment would make the variable local and not global
-	# if it weren't for the global declaration at the start of main.
-	window = glutCreateWindow("Trabalho de CG 2017.1")
+    def Octaedro(self):
+        os.system('python UtilidadesDesenho.py octahedron.ply '+self.textura.get())
 
-   	# Register the drawing function with glut, BUT in Python land, at least using PyOpenGL, we need to
-	# set the function pointer and invoke a function to actually register the callback, otherwise it
-	# would be very much like the C version of the code.
-	glutDisplayFunc(Draw)
+    def Dodecaedro(self):
+        os.system('python UtilidadesDesenho.py dodecahedron.ply '+self.textura.get())
 
-	# Uncomment this line to get full screen.
-	# glutFullScreen()
+    def Icosaedro(self):
+        os.system('python UtilidadesDesenho.py icosahedron.ply '+self.textura.get())
 
-	# When we are doing nothing, redraw the scene.
-	glutIdleFunc(Draw)
-
-	# Register the function called when our window is resized.
-	glutReshapeFunc(ReSizeGLScene)
-
-	# Register the function called when the keyboard is pressed.
-	glutKeyboardFunc(keyPressed)
-
-
-	# GLUT When mouse buttons are clicked in window
-	glutMouseFunc (Upon_Click)
-
-	# GLUT When the mouse mvoes
-	glutMotionFunc (Upon_Drag)
-
-
-	# We've told Glut the type of window we want, and we've told glut about
-	# various functions that we want invoked (idle, resizing, keyboard events).
-	# Glut has done the hard work of building up the windows DC context and
-	# tying in a rendering context, so we are ready to start making immediate mode
-	# GL calls.
-	# Call to perform inital GL setup (the clear colors, enabling modes
-	Initialize (640, 480, sys.argv)
-
-	# Start Event Processing Engine
-	glutMainLoop()
-
-# Print message to console, and kick off the main to get it rolling.
-if __name__ == "__main__":
-	print "Hit ESC key to quit."
-	main()
+root = Tk()
+my_gui = menuTrabalhoCG(root)
+root.mainloop()

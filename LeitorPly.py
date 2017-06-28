@@ -1,4 +1,4 @@
-from libs.geometry import Point
+from geometry import Point
 
 class PLY(object):
 
